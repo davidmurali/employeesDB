@@ -1,9 +1,8 @@
 package config
 
 import (
-	"database/sql"
 	"encoding/json"
-	"fmt"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -18,7 +17,6 @@ var env = `{
 }`
 
 var appConfig map[string]string
-var db *sql.DB
 
 func Init() error {
 	err := json.Unmarshal([]byte(env), &appConfig)
@@ -29,31 +27,46 @@ func Init() error {
 	return nil
 }
 
-func GetDB() (db1 *sql.DB, err error) {
-	if db == nil {
-		mysqlCredentials := fmt.Sprintf(
-			"%s:%s@%s(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
-			appConfig["MYSQL_USERNAME"],
-			appConfig["MYSQL_PASSWORD"],
-			appConfig["MYSQL_PROTOCOL"],
-			appConfig["MYSQL_HOST"],
-			appConfig["MYSQL_PORT"],
-			appConfig["MYSQL_DBNAME"],
-		)
-		db, err = sql.Open("mysql", mysqlCredentials)
-		if err != nil {
-			return nil, err
-		}
+func GetMySQLDBUsername() string {
+	username := os.Getenv("MYSQL_USERNAME")
+	if username == "" {
+		return appConfig["MYSQL_USERNAME"]
 	}
-	return db, nil
+	return username
+}
+func GetMySQLDBPassword() string {
+	pwd := os.Getenv("MYSQL_PASSWORD")
+	if pwd == "" {
+		return appConfig["MYSQL_PASSWORD"]
+	}
+	return pwd
 }
 
-// func SelectDatabase(db *sql.DB, dbName string) error {
-// 	query := fmt.Sprintf("USE %s", dbName)
-// 	_, err := db.Exec(query)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
+func GetMySQLDBName() string {
+	dbname := os.Getenv("MYSQL_DBNAME")
+	if dbname == "" {
+		return appConfig["MYSQL_DBNAME"]
+	}
+	return dbname
+}
+func GetMySQLDBProtocol() string {
+	protocol := os.Getenv("MYSQL_PROTOCOL")
+	if protocol == "" {
+		return appConfig["MYSQL_PROTOCOL"]
+	}
+	return protocol
+}
+func GetMySQLDBHost() string {
+	user := os.Getenv("MYSQL_HOST")
+	if user == "" {
+		return appConfig["MYSQL_HOST"]
+	}
+	return user
+}
+func GetMySQLDBPort() string {
+	port := os.Getenv("MYSQL_PORT")
+	if port == "" {
+		return appConfig["MYSQL_PORT"]
+	}
+	return port
+}

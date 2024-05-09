@@ -14,5 +14,6 @@ func main() {
 	if err != nil {
 		logrus.Error(constants.InitError + ": " + err.Error())
 	}
+
 	http.ListenAndServe(":9000", employee.CreateEmployeeEndpoints())
 }

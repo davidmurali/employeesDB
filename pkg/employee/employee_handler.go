@@ -3,10 +3,12 @@ package employee
 import (
 	"database/sql"
 	config "employeesDB/pkg/config"
-	"employeesDB/pkg/constants"
+	constants "employeesDB/pkg/constants"
+	database "employeesDB/pkg/database"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -19,14 +21,14 @@ type Employee struct {
 }
 
 func CreateEmployee(w http.ResponseWriter, r *http.Request) {
-	db, err := config.GetDB()
+	dbPort, _ := strconv.Atoi(config.GetMySQLDBPort())
+	db, err := database.GetDb(config.GetMySQLDBUsername(), config.GetMySQLDBPassword(), config.GetMySQLDBProtocol(), config.GetMySQLDBHost(), dbPort, config.GetMySQLDBName())
 	if err != nil {
 		err = fmt.Errorf(constants.DBOpenError + ": " + err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-		// logrus.Error(constants.DBOpenError + ": " + err.Error())
 	}
-	defer db.Close()
+
 	var emp Employee
 	err = json.NewDecoder(r.Body).Decode(&emp)
 	if err != nil {
@@ -47,13 +49,13 @@ func CreateEmployee(w http.ResponseWriter, r *http.Request) {
 
 func GetEmployeeByID(w http.ResponseWriter, r *http.Request) {
 
-	db, err := config.GetDB()
+	dbPort, _ := strconv.Atoi(config.GetMySQLDBPort())
+	db, err := database.GetDb(config.GetMySQLDBUsername(), config.GetMySQLDBPassword(), config.GetMySQLDBProtocol(), config.GetMySQLDBHost(), dbPort, config.GetMySQLDBName())
 	if err != nil {
 		err = fmt.Errorf(constants.DBOpenError + ": " + err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer db.Close()
 	id := r.URL.Query().Get("id")
 	var emp Employee
 	err = db.QueryRow("SELECT id, name, position, salary FROM employees WHERE id = ?", id).Scan(&emp.ID, &emp.Name, &emp.Position, &emp.Salary)
@@ -72,13 +74,14 @@ func GetEmployeeByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
-	db, err := config.GetDB()
+
+	dbPort, _ := strconv.Atoi(config.GetMySQLDBPort())
+	db, err := database.GetDb(config.GetMySQLDBUsername(), config.GetMySQLDBPassword(), config.GetMySQLDBProtocol(), config.GetMySQLDBHost(), dbPort, config.GetMySQLDBName())
 	if err != nil {
 		err = fmt.Errorf(constants.DBOpenError + ": " + err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer db.Close()
 	id := r.URL.Query().Get("id")
 	var emp Employee
 	err = json.NewDecoder(r.Body).Decode(&emp)
@@ -102,13 +105,13 @@ func UpdateEmployee(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteEmployee(w http.ResponseWriter, r *http.Request) {
-	db, err := config.GetDB()
+	dbPort, _ := strconv.Atoi(config.GetMySQLDBPort())
+	db, err := database.GetDb(config.GetMySQLDBUsername(), config.GetMySQLDBPassword(), config.GetMySQLDBProtocol(), config.GetMySQLDBHost(), dbPort, config.GetMySQLDBName())
 	if err != nil {
 		err = fmt.Errorf(constants.DBOpenError + ": " + err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer db.Close()
 	id := r.URL.Query().Get("id")
 	var count int
 	err = db.QueryRow("SELECT COUNT(*) FROM employees WHERE id = ?", id).Scan(&count)
